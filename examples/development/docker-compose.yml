@@ -1,0 +1,7 @@
+services:
+  flux-ilias-user-import-api:
+    ports:
+      - 127.0.0.15:80:9501
+    image: fluxms/flux-ilias-user-import-api:latest
+    volumes:
+      - ../../app:/app
