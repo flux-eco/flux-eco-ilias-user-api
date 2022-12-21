@@ -1,18 +1,18 @@
 <?php
-require_once __DIR__ . '/libs/flux-ilias-rest-api-client/autoload.php';
+
+//require_once __DIR__ . '/libs/flux-ilias-rest-api-client/autoload.php';
 
 spl_autoload_register(function (string $class) {
-    $namespace = "Medi\\CourseManagementBackend";
+    $namespace = "Flux\\IliasUserImportApi";
     $baseDirectory = '/app/src';
     loadClassFile($namespace, $class, $baseDirectory);
 });
 
 spl_autoload_register(function (string $class) {
     $namespace = "Shuchkin";
-    $baseDirectory = '/app/libs/simple-xlsx';
+    $baseDirectory = '/app/libs/simple-xlsx/src';
     loadClassFile($namespace, $class, $baseDirectory);
 });
-
 
 
 /**
