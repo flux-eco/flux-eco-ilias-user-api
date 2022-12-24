@@ -26,7 +26,7 @@ class Actor
         //todo
 
 
-        $publish('userImported');
+        $publish('userImported: '.print_r($users,true));
     }
 
 

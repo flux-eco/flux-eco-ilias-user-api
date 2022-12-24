@@ -2,7 +2,7 @@
 
 require_once "./autoload.php";
 
-$server = new Swoole\HTTP\Server('0.0.0.0', 9501, SWOOLE_PROCESS, SWOOLE_SOCK_TCP);
+$server = new Swoole\HTTP\Server('0.0.0.0', 9501);
 
 $server->set([
     'worker_num' => 1,      // The number of worker processes to start
