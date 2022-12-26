@@ -6,8 +6,8 @@ class Account
 {
     private function __construct(
         public string $login,
+        public string $externalId,
         public string $authMode,
-        public string $externalId = "",
     )
     {
 
@@ -15,8 +15,8 @@ class Account
 
     public static function new(
         string $login,
-        string $authMode,
         string $externalId = "",
+        string $authMode = "default"
     )
     {
         return new self(

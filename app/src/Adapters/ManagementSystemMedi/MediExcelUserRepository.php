@@ -32,7 +32,10 @@ class MediExcelUserRepository implements Ports\ManagementSystem\ManagementSystem
                 $row[MediExcelUserColumnId::E_MAIL->value],
                 $row[MediExcelUserColumnId::FIRST_NAME->value],
                 $row[MediExcelUserColumnId::LAST_NAME->value],
-                null,
+                ValueObjects\Account::new(
+                    strtolower($row[MediExcelUserColumnId::E_MAIL->value]),
+                    "person/address-nr/".$row[MediExcelUserColumnId::ID->value]
+                ),
                 []
             );
         }

@@ -1,0 +1,10 @@
+*/
+!docker
+!examples
+!LICENSE
+!README.md
+!app/bin
+!app/src
+!app/autoload.php
+!app/docker_entrypoint.sh
+!app/server.php

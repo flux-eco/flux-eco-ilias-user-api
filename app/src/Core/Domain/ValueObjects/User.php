@@ -9,18 +9,25 @@ class User {
         public string $firstName,
         public string $lastName,
         public ?Account $account,
-        public array $userGroups
+        public array $userGroups,
+        public array $additionalFields
     ) {
 
     }
 
+    /**
+     * @param UserGroup[] $userGroups
+     * @param AdditionalField[] $additionalFields
+     * @return static
+     */
     public static function new(
         string $id,
         string $email,
         string $firstName,
         string $lastName,
         ?Account $account,
-        array $userGroups
+        array $userGroups,
+        array $additionalFields = []
     ): self
     {
         return new self(

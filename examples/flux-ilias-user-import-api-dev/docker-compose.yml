@@ -7,3 +7,4 @@ services:
       - EXCEL_IMPORT_DIRECTORY_PATH=/app/data
     volumes:
       - ../../app:/app
+      - ./data:/app/data
