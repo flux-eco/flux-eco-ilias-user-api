@@ -4,7 +4,19 @@ services:
       - 127.0.0.15:80:9501
     image: fluxms/flux-ilias-user-import-api:latest
     environment:
+      - FLUX_ILIAS_REST_API_CLIENT_CLIENT=medi01
+      - FLUX_ILIAS_REST_API_CLIENT_URL=http://127.0.0.11/flux-ilias-rest-api
+      - FLUX_ILIAS_REST_API_CLIENT_USER_FILE=/run/secrets/flux_ilias_rest_api_client_user
+      - FLUX_ILIAS_REST_API_CLIENT_PASSWORD_FILE=/run/secrets/flux_ilias_rest_api_client_password
       - EXCEL_IMPORT_DIRECTORY_PATH=/app/data
+    secrets:
+      - flux_ilias_rest_api_client_user
+      - flux_ilias_rest_api_client_password
     volumes:
       - ../../app:/app
-      - ./data:/app/data
+      - ./data/example.xlsx:/app/data/Benutzerexport-SSO-BMA.xlsx
+secrets:
+  flux_ilias_rest_api_client_user:
+    file: "./secrets/flux_ilias_rest_api_client_user"
+  flux_ilias_rest_api_client_password:
+    file: "./secrets/flux_ilias_rest_api_client_password"

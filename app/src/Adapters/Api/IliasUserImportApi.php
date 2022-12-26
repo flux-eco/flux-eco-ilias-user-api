@@ -2,6 +2,7 @@
 
 namespace Flux\IliasUserImportApi\Adapters\Api;
 
+use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
 use Swoole\Http;
 use Flux\IliasUserImportApi\Adapters\ManagementSystemMedi;
 use Flux\IliasUserImportApi\Adapters\Ilias;
@@ -24,7 +25,9 @@ class IliasUserImportApi
             Domain\Actor::new(
                 Ports\Outbounds::new(
                     ManagementSystemMedi\MediExcelUserRepository::new(IliasUserImportConfig::new()->excelImportDirectoryPath),
-                    Ilias\IliasUserRepositoryAdapter::new()
+                    Ilias\IliasUserRepositoryAdapter::new(
+                        IliasRestApiClient::new()
+                    )
                 )
             )
         );

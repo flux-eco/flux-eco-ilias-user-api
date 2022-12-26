@@ -21,12 +21,13 @@ class Actor
 
     public function importUsers(string $contextId, callable $publish)
     {
-        $users = $this->outbounds->managementSystemUserRepository->getUserOfContext($contextId);
+        $usersToHandle = $this->outbounds->managementSystemUserRepository->getUserOfContext($contextId);
+        $existingUsers = $this->outbounds->iliasUserRepository->getAll();
 
         //todo
 
 
-        $publish('userImported: '.print_r($users,true));
+        $publish('userImported: '.print_r($usersToHandle,true));
     }
 
 

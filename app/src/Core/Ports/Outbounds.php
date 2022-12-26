@@ -6,7 +6,7 @@ class Outbounds {
 
     private function __construct(
         public ManagementSystem\ManagementSystemUserRepository $managementSystemUserRepository,
-        public Ilias\IliasUserRepository $userRepository
+        public Ilias\IliasUserRepository $iliasUserRepository
     )
     {
 
@@ -14,7 +14,7 @@ class Outbounds {
 
     public static function new(
         ManagementSystem\ManagementSystemUserRepository $managementSystemUserRepository,
-        Ilias\IliasUserRepository $userRepository
+        Ilias\IliasUserRepository $iliasUserRepository
     ) {
         return new self(...get_defined_vars());
     }
