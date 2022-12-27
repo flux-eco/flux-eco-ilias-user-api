@@ -4,7 +4,7 @@ namespace Flux\IliasUserImportApi\Adapters\Api;
 
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
 use Swoole\Http;
-use Flux\IliasUserImportApi\Adapters\ManagementSystemMedi;
+use Flux\IliasUserImportApi\Adapters\Medi;
 use Flux\IliasUserImportApi\Adapters\Ilias;
 use Flux\IliasUserImportApi\Core\Domain;
 use Flux\IliasUserImportApi\Core\Ports;
@@ -13,7 +13,7 @@ class IliasUserImportApi
 {
 
     private function __construct(
-        private Domain\Actor $actor
+        private Ports\Service $actor
     )
     {
 
@@ -21,13 +21,16 @@ class IliasUserImportApi
 
     public static function new(): self
     {
+        $iliasRestApiClient = IliasRestApiClient::new();
+
         return new self(
-            Domain\Actor::new(
+            Ports\Service::new(
                 Ports\Outbounds::new(
-                    ManagementSystemMedi\MediExcelUserRepository::new(IliasUserImportConfig::new()->excelImportDirectoryPath),
-                    Ilias\IliasUserRepositoryAdapter::new(
-                        IliasRestApiClient::new()
-                    )
+                    Medi\MediExcelUserQueryRepository::new(IliasUserImportConfig::new()->excelImportDirectoryPath),
+                    Ilias\IliasUserQueryRepositoryAdapter::new(
+                        $iliasRestApiClient
+                    ),
+                    Medi\MediUserEventHandler::new($iliasRestApiClient)
                 )
             )
         );

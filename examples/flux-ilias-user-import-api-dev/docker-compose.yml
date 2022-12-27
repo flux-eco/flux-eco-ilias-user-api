@@ -1,12 +1,54 @@
 services:
+  database:
+    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+    environment:
+      - MARIADB_DATABASE=ilias
+      - MARIADB_PASSWORD_FILE=/run/secrets/database_ilias_password
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/database_root_password
+      - MARIADB_USER=ilias
+    image: mariadb:10.8.2
+    secrets:
+      - database_ilias_password
+      - database_root_password
+  ilias:
+    depends_on:
+      - database
+    environment:
+      - ILIAS_LUCENE_SEARCH=true
+      - ILIAS_DATABASE_USER=ilias
+      - ILIAS_DATABASE_DATABASE=ilias
+      - ILIAS_DATABASE_PASSWORD_FILE=/run/secrets/database_ilias_password
+      - ILIAS_HTTP_PATH=https://learn.medi.ch
+      - ILIAS_ROOT_USER_PASSWORD_FILE=/run/secrets/ilias_root_password
+      - ILIAS_SYSTEMFOLDER_CONTACT_FIRSTNAME=example
+      - ILIAS_SYSTEMFOLDER_CONTACT_LASTNAME=01
+      - ILIAS_SYSTEMFOLDER_CONTACT_EMAIL=noreply@example.com
+      - ILIAS_COMMON_CLIENT_ID=example01
+    image: flux-ilias-user-import-example/ilias:7.16-1
+    secrets:
+      - database_ilias_password
+      - ilias_root_password
+    volumes:
+      - ./volumes/iliasdata:/var/iliasdata
+      - ./volumes/log:/var/log/ilias
+  nginx:
+    depends_on:
+      - ilias
+    image: flux-ilias-user-import-example/nginx:7.16-1
+    ports:
+      - 127.0.0.14:80:80
+    volumes:
+      - ./volumes/iliasdata/web:/var/iliasdata/web:ro
+    environment:
+      - ILIAS_COMMON_CLIENT_ID=example01
   flux-ilias-user-import-api:
     ports:
       - 127.0.0.15:80:9501
     image: fluxms/flux-ilias-user-import-api:latest
     environment:
-      - FLUX_ILIAS_REST_API_CLIENT_CLIENT=medi01
-      - FLUX_ILIAS_REST_API_CLIENT_URL=http://127.0.0.11/flux-ilias-rest-api
-      - FLUX_ILIAS_REST_API_CLIENT_USER_FILE=/run/secrets/flux_ilias_rest_api_client_user
+      - FLUX_ILIAS_REST_API_CLIENT_CLIENT=example01
+      - FLUX_ILIAS_REST_API_CLIENT_URL=http://nginx
+      - FLUX_ILIAS_REST_API_CLIENT_USER=example-user-import
       - FLUX_ILIAS_REST_API_CLIENT_PASSWORD_FILE=/run/secrets/flux_ilias_rest_api_client_password
       - EXCEL_IMPORT_DIRECTORY_PATH=/app/data
     secrets:
@@ -14,9 +56,19 @@ services:
       - flux_ilias_rest_api_client_password
     volumes:
       - ../../app:/app
-      - ./data/example.xlsx:/app/data/Benutzerexport-SSO-BMA.xlsx
+      - ./volumes/share/example.xlsx:/app/data/Benutzerexport-SSO-BMA.xlsx
 secrets:
   flux_ilias_rest_api_client_user:
-    file: "./secrets/flux_ilias_rest_api_client_user"
+    file: "./volumes/secrets/flux_ilias_rest_api_client_user"
   flux_ilias_rest_api_client_password:
-    file: "./secrets/flux_ilias_rest_api_client_password"
+    file: "./volumes/secrets/flux_ilias_rest_api_client_password"
+  ilias_root_password:
+    file: "./volumes/secrets/ilias_root_password"
+  database_ilias_password:
+    file: "./volumes/secrets/database_ilias_password"
+  database_root_password:
+    file: "./volumes/secrets/database_root_password"
+
+
+
+

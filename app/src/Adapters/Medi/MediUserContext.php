@@ -1,6 +1,6 @@
 <?php
 
-namespace Flux\IliasUserImportApi\Adapters\ManagementSystemMedi;
+namespace Flux\IliasUserImportApi\Adapters\Medi;
 
 enum MediUserContext: string
 {

@@ -2,22 +2,20 @@
 
 namespace Flux\IliasUserImportApi\Core\Domain\ValueObjects;
 
-class User {
+class UserData {
     private function __construct(
         public string $id,
         public string $email,
         public string $firstName,
         public string $lastName,
-        public ?Account $account,
-        public array $userGroups,
-        public array $additionalFields
+        public string $login,
+        public string $authMode,
+        public string $externalId,
     ) {
 
     }
 
     /**
-     * @param UserGroup[] $userGroups
-     * @param AdditionalField[] $additionalFields
      * @return static
      */
     public static function new(
@@ -25,13 +23,17 @@ class User {
         string $email,
         string $firstName,
         string $lastName,
-        ?Account $account,
-        array $userGroups,
-        array $additionalFields = []
+        string $login,
+        string $authMode = "default",
+        string $externalId = "",
     ): self
     {
         return new self(
             ...get_defined_vars()
         );
+    }
+
+    public function isEqual(UserData $userData): bool {
+       return (serialize($this) === serialize($userData));
     }
 }

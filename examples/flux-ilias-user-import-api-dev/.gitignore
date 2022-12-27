@@ -1,0 +1,5 @@
+*
+!build
+!volumes/secrets
+!volumes/share
+!docker-compose.yml

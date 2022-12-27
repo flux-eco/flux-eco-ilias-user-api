@@ -5,16 +5,18 @@ namespace Flux\IliasUserImportApi\Core\Ports;
 class Outbounds {
 
     private function __construct(
-        public ManagementSystem\ManagementSystemUserRepository $managementSystemUserRepository,
-        public Ilias\IliasUserRepository $iliasUserRepository
+        public ManagementSystem\ManagementSystemUserQueryRepository $managementSystemUserRepository,
+        public Ilias\IliasUserQueryRepository                       $iliasUserRepository,
+        public User\UserEventHandler                                $userEventHandler
     )
     {
 
     }
 
     public static function new(
-        ManagementSystem\ManagementSystemUserRepository $managementSystemUserRepository,
-        Ilias\IliasUserRepository $iliasUserRepository
+        ManagementSystem\ManagementSystemUserQueryRepository $managementSystemUserRepository,
+        Ilias\IliasUserQueryRepository                       $iliasUserRepository,
+        User\UserEventHandler                                $userEventHandler
     ) {
         return new self(...get_defined_vars());
     }
