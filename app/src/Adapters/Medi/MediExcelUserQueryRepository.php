@@ -37,9 +37,14 @@ class MediExcelUserQueryRepository implements Ports\ManagementSystem\ManagementS
 
             $importId = "medi-address_nr-" . $row[MediExcelUserColumnId::ID->value];
 
-            $additionalFields[] = ValueObjects\AdditionalField::new(
-                MediKeywords::BG_FACHTEAM->value, $row[MediExcelUserColumnId::BG_FACHTEAM->value],
-            );
+            $additionalFields = [
+                    ValueObjects\AdditionalField::new(MediKeywords::BG_FACHTEAM->value, $row[MediExcelUserColumnId::BG_FACHTEAM->value]),
+                    ValueObjects\AdditionalField::new(MediKeywords::BG_ADMIN->value, $row[MediExcelUserColumnId::BG_ADMIN->value]),
+                    ValueObjects\AdditionalField::new(MediKeywords::BG_DOZIERENDE->value, $row[MediExcelUserColumnId::BG_DOZIERENDE->value]),
+                    ValueObjects\AdditionalField::new(MediKeywords::BG_BERUFSBILDE->value, $row[MediExcelUserColumnId::BG_BERUFSBILDENDE->value]),
+                    ValueObjects\AdditionalField::new(MediKeywords::BG_STUDIERENDE->value, $row[MediExcelUserColumnId::BG_STUDIERENDE->value])
+                ];
+
 
             $users[] = Ports\User\UserDto::new(
                 ValueObjects\UserData::new(
