@@ -1,0 +1,12 @@
+/*
+!.gitignore
+!LICENSE
+!README.md
+!app/
+app/*
+!app/src/
+!app/bin/
+!app/autoload.php
+!app/docker_entrypoint.sh
+!app/server.php
+!docker/

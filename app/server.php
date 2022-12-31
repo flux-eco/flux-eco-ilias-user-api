@@ -25,7 +25,7 @@ $server->on("Start", function (Swoole\Http\Server $server) {
 // The main HTTP server request callback event, entry point for all incoming HTTP requests
 $server->on('Request', function (Swoole\Http\Request $request, Swoole\Http\Response $response) {
 
-    $api = Flux\IliasUserImportApi\Adapters\Api\IliasUserImportApi::new();
+    $api = FluxEco\IliasUserApi\Adapters\Api\HttpApi::new();
     $api->handleHttpRequest($request, $response);
     //$response->end('<h1>Hello World!</h1>');
 });

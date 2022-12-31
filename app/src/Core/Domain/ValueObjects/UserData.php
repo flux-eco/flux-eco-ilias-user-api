@@ -1,10 +1,9 @@
 <?php
 
-namespace Flux\IliasUserImportApi\Core\Domain\ValueObjects;
+namespace FluxEco\IliasUserApi\Core\Domain\ValueObjects;
 
 class UserData {
     private function __construct(
-        public string $id,
         public string $email,
         public string $firstName,
         public string $lastName,
@@ -19,7 +18,6 @@ class UserData {
      * @return static
      */
     public static function new(
-        string $id,
         string $email,
         string $firstName,
         string $lastName,

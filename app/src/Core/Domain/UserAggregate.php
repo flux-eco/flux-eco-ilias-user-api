@@ -1,130 +1,153 @@
 <?php
 
-namespace Flux\IliasUserImportApi\Core\Domain;
+namespace FluxEco\IliasUserApi\Core\Domain;
 
-use Flux\IliasUserImportApi\Core\Domain\Events\AdditionalFieldsChanged;
-use Flux\IliasUserImportApi\Core\Ports;
+use FluxEco\IliasUserApi\Core\Domain\Messages\AdditionalFieldsValuesChanged;
 
 class UserAggregate
 {
+    private array $recordedMessages = [];
+    public ?ValueObjects\UserData $userData = null;
     /**
      * @var ValueObjects\AdditionalField[]
      */
     public array $additionalFields = [];
 
-
     private function __construct(
-        private Ports\User\UserEventHandler $eventHandler,
-        public ValueObjects\UserData         $userData
-    )
-    {
+        public readonly ValueObjects\UserId $userId
+    ) {
 
     }
 
-    /**
-     * @param Ports\User\UserEventHandler $eventHandler
-     * @param ValueObjects\UserData $userData
-     * @param ValueObjects\AdditionalField[] $additionalFields
-     * @return static
-     */
-    public static function fromExisting(
-        Ports\User\UserEventHandler $eventHandler,
-        ValueObjects\UserData        $userData,
-        array                        $additionalFields
-    ): self
-    {
-        $obj = new self($eventHandler, $userData);
-        foreach($additionalFields as $additionalField) {
-            $obj->appendAdditionalField($additionalField);
-        }
-        return $obj;
+    public static function new(
+        ValueObjects\UserId $userId
+    ) : self {
+        return new self(...get_defined_vars());
     }
 
-    private function appendAdditionalField(ValueObjects\AdditionalField $additionalField) {
+    private function appendAdditionalField(ValueObjects\AdditionalField $additionalField)
+    {
         $this->additionalFields[$additionalField->fieldName] = $additionalField;
     }
 
-    public static function create(
-        Ports\User\UserEventHandler $eventHandler,
-        ValueObjects\UserData        $user
-    ): self
-    {
-        $obj = new self($eventHandler, $user, []);
-        $obj->applyCreated(Events\Created::new($user));
-        return $obj;
+    private function recordMessage(Messages\Message $message): void  {
+        $this->recordedMessages[] = $message;
     }
 
-    private function applyCreated(Events\Created $created): void
-    {
-        $this->eventHandler->handle($created);
+    public function getAndResetRecordedMessages(): array {
+        $messages = $this->recordedMessages;
+        $this->recordedMessages = [];
+        return $messages;
     }
 
-    public function changeUserData(ValueObjects\UserData $userData): void
-    {
-        if ($this->userData->isEqual($userData) === false) {
-            $this->applyUserDataChanged(Events\UserDataChanged::new($userData));
+    /**
+     * @param ValueObjects\AdditionalField[] $additionalFields
+     */
+    public function reconstitue(
+        ValueObjects\UserData $userData,
+        array $additionalFields
+    ) : void {
+        $this->applyCreated(Messages\Created::new($this->userId, $userData));
+        if(count($additionalFields) > 0) {
+            $this->applyAdditionalFieldsChanged(Messages\AdditionalFieldsValuesChanged::new($this->userId, $additionalFields));
         }
     }
 
-    private function applyUserDataChanged(Events\UserDataChanged $userDataChanged): void
+    public function create(
+        ValueObjects\UserData $userData,
+        array $additionalFields
+    ) : void {
+        $message = Messages\Created::new($this->userId, $userData);
+        $this->applyCreated($message);
+        $this->recordMessage($message);
+
+        if (count($additionalFields) > 0) {
+            $this->changeAdditionalFields($additionalFields);
+        }
+    }
+
+    private function applyCreated(Messages\Created $message) : void
     {
-        $this->userData = $userDataChanged->userData;
-        $this->eventHandler->handle($userDataChanged);
+        $this->userData = $message->userData;
+    }
+
+    public function changeUserData(ValueObjects\UserData $userData) : void
+    {
+        if ($this->userData->isEqual($userData) === false) {
+            $message = Messages\UserDataChanged::new($this->userId, $userData);
+            $this->applyUserDataChanged($message);
+            $this->recordMessage($message);
+        }
+    }
+
+    private function applyUserDataChanged(Messages\UserDataChanged $message) : void
+    {
+        $this->userData = $message->userData;
     }
 
     /**
      * @param ValueObjects\AdditionalField[] $additionalFields
      * @return void
      */
-    public function changeAdditionalFields(array $additionalFields): void
+    public function changeAdditionalFields(array $additionalFields) : void
     {
-       $additionalFieldsHasChanged = false;
+        $additionalFieldsHasChanged = false;
 
-       $fieldNamesToHandle = [];
-       if(count($additionalFields) > 0) {
-           foreach($additionalFields as $additionalField) {
-               $fieldNamesToHandle[] = $additionalField->fieldName;
-               if(array_key_exists($additionalField->fieldName, $this->additionalFields) === false) {
-                   $additionalFieldsHasChanged = true;
-                   continue;
-               }
+        $fieldNamesToHandle = [];
+        if (count($additionalFields) > 0) {
+            foreach ($additionalFields as $newAdditionalFieldValue) {
+                if (array_key_exists($newAdditionalFieldValue->fieldName,$this->additionalFields) === false || $this->additionalFields[$newAdditionalFieldValue->fieldName]->fieldValue === "" && $newAdditionalFieldValue->fieldValue !== "") {
+                    $additionalFieldsHasChanged = true;
+                    $this->recordMessage(Messages\AdditionalFieldValueAdded::new(
+                        $this->userId,
+                        $newAdditionalFieldValue
+                    ));
+                    continue;
+                }
 
-               $currentField = $this->additionalFields[$additionalField->fieldName];
-               if($currentField->isEqual($additionalField) === false) {
-                   $additionalFieldsHasChanged = true;
-                   continue;
-               }
-           }
+                if (array_key_exists($newAdditionalFieldValue->fieldName,$this->additionalFields) === true && $this->additionalFields[$newAdditionalFieldValue->fieldName]->fieldValue !== "" && $newAdditionalFieldValue->fieldValue === "") {
+                    $additionalFieldsHasChanged = true;
+                    $this->recordMessage(Messages\AdditionalFieldValueRemoved::new(
+                        $this->userId,
+                        $newAdditionalFieldValue
+                    ));
+                    continue;
+                }
 
-           foreach($this->additionalFields as $currentAdditionalFields) {
-               if(in_array($currentAdditionalFields->fieldName, $fieldNamesToHandle) === false) {
-                   $additionalFieldsHasChanged = true;
-               }
-           }
-       }
+                $currentAdditionalFieldValue = $this->additionalFields[$newAdditionalFieldValue->fieldName];
+                if ($currentAdditionalFieldValue->isEqual($newAdditionalFieldValue) === false) {
+                    $additionalFieldsHasChanged = true;
+                    $this->recordMessage(Messages\AdditionalFieldValueChanged::new(
+                        $this->userId,
+                        $newAdditionalFieldValue,
+                        $currentAdditionalFieldValue
+                    ));
+                }
 
-        if(count($additionalFields) === 0 && count($this->additionalFields) > 0) {
-            $additionalFieldsHasChanged = true;
+
+            }
         }
 
-        if($additionalFieldsHasChanged === true) {
-            $this->applyAdditionalFieldsChanged(AdditionalFieldsChanged::new($this->userData->id, $additionalFields));
+        /*if(count($additionalFields) === 0 && count($this->additionalFields) > 0) {
+            $additionalFieldsHasChanged = true;
+        }*/
+
+        if ($additionalFieldsHasChanged === true) {
+            $message = AdditionalFieldsValuesChanged::new($this->userId, $additionalFields);
+            $this->applyAdditionalFieldsChanged($message);
+            $this->recordMessage($message);
         }
 
     }
 
     private function applyAdditionalFieldsChanged(
-        AdditionalFieldsChanged $additionalFieldsChanged
+        AdditionalFieldsValuesChanged $message
     ) {
         $this->additionalFields = [];
-
-        if(count($additionalFieldsChanged->additionalFields) > 0) {
-            foreach($additionalFieldsChanged->additionalFields as $additionalField) {
+        if (count($message->additionalFieldsValues) > 0) {
+            foreach ($message->additionalFieldsValues as $additionalField) {
                 $this->appendAdditionalField($additionalField);
             }
         }
-
-        $this->eventHandler->handle($additionalFieldsChanged);
     }
-
 }

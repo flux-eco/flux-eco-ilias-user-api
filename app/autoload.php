@@ -3,7 +3,7 @@
 require_once __DIR__ . '/libs/flux-ilias-rest-api-client/autoload.php';
 
 spl_autoload_register(function (string $class) {
-    $namespace = "Flux\\IliasUserImportApi";
+    $namespace = "FluxEco\\IliasUserApi";
     $baseDirectory = '/app/src';
     loadClassFile($namespace, $class, $baseDirectory);
 });

@@ -1,64 +1,69 @@
 <?php
 
-namespace Flux\IliasUserImportApi\Core\Ports;
+namespace FluxEco\IliasUserApi\Core\Ports;
 
-use  Flux\IliasUserImportApi\Core\Domain;
-use Flux\IliasUserImportApi\Core\Ports\User\UserEventHandler;
+use FluxEco\IliasUserApi\Core\Domain;
 
 class Service
 {
 
     private function __construct(
-        private Outbounds $outbounds
-    )
-    {
+        private Outbounds $outbounds,
+    ) {
 
     }
 
     public static function new(Outbounds $outbounds)
     {
-        return new self($outbounds);
+        return new self(
+            $outbounds
+        );
     }
 
-    public function importUsers(string $contextId, callable $publish)
+    /**
+     * @param callable $publish
+     * @return void
+     */
+    public function createOrUpdateUser(User\UserDto $userDto, callable $publish) : void
     {
-        $eventHandler = new class([], $this->outbounds->userEventHandler) implements UserEventHandler {
-
-            public function __construct(public array $handledEvents, public UserEventHandler $eventHandler)
-            {
-
-            }
-
-            public function handle(Domain\Events\Event $event)
-            {
-                $this->handledEvents[] = $event;
-                $this->eventHandler->handle($event);
-            }
-        };
-
-        $usersToHandle = $this->outbounds->managementSystemUserRepository->getUserOfContext($contextId);
-
-
-        $existingIliasUsers = $this->outbounds->iliasUserRepository->getAll();
-
-        foreach ($usersToHandle as $user) {
-            if (array_key_exists($user->userData->id, $existingIliasUsers) === false) {
-                Domain\UserAggregate::create($eventHandler, $user->userData);
-                continue;
-            }
-
-            $existingIliasUser = $existingIliasUsers[$user->userData->id];
-
-            $userAggregate = Domain\UserAggregate::fromExisting($eventHandler, $existingIliasUser->userData, $existingIliasUser->additionalFields);
-            $userAggregate->changeUserData($user->userData);
-
-            $userAggregate->changeAdditionalFields($user->additionalFields);
-
+        $iliasUser = $this->outbounds->userRepository->get($userDto->userId);
+        $aggregate = Domain\UserAggregate::new(
+            $userDto->userId,
+        );
+        if ($iliasUser === null) {
+            $this->createUser($aggregate, $userDto);
+        } else {
+            $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+            $this->updateUser($aggregate, $userDto);
         }
 
+        $recordedMessages = $aggregate->getAndResetRecordedMessages();
 
-        $publish('userImported: ' . print_r($eventHandler->handledEvents, true));
+        $this->outbounds->userRepository->handleMessages($recordedMessages);
+        $this->dispatchMessages($recordedMessages,  $publish);
     }
 
+    private function createUser(Domain\UserAggregate $aggregate, User\UserDto $userDto) : void
+    {
+        $aggregate->create($userDto->userData, $userDto->additionalFields);
+    }
 
+    private function updateUser(Domain\UserAggregate $aggregate, User\UserDto $userDataToUpdate) : void
+    {
+        $aggregate->changeUserData($userDataToUpdate->userData);
+        $aggregate->changeAdditionalFields($userDataToUpdate->additionalFields);
+    }
+
+    private function dispatchMessages(array $recordedMessages, callable $publish)
+    {
+        $handledMessages = [];
+        if (count($recordedMessages) > 0) {
+            foreach ($recordedMessages as $message) {
+                $this->outbounds->userMessageDispatcher->dispatch($message);
+                $handledMessages[] = $message;
+            }
+        }
+        print_r($handledMessages);
+        $publish(json_encode($handledMessages, JSON_PRETTY_PRINT));
+    }
 }

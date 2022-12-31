@@ -1,6 +1,0 @@
-*
-!src
-!bin
-!autoload.php
-!docker_entrypoint.sh
-!server.php

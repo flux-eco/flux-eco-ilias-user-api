@@ -1,23 +1,21 @@
 <?php
 
-namespace Flux\IliasUserImportApi\Core\Ports;
+namespace FluxEco\IliasUserApi\Core\Ports;
 
-class Outbounds {
+class  Outbounds {
 
     private function __construct(
-        public ManagementSystem\ManagementSystemUserQueryRepository $managementSystemUserRepository,
-        public Ilias\IliasUserQueryRepository                       $iliasUserRepository,
-        public User\UserEventHandler                                $userEventHandler
+        public readonly User\UserRepository $userRepository,
+        public readonly User\UserMessageDispatcher $userMessageDispatcher
     )
     {
 
     }
 
     public static function new(
-        ManagementSystem\ManagementSystemUserQueryRepository $managementSystemUserRepository,
-        Ilias\IliasUserQueryRepository                       $iliasUserRepository,
-        User\UserEventHandler                                $userEventHandler
-    ) {
+        User\UserRepository $userRepository,
+        User\UserMessageDispatcher $userMessageDispatcher
+    ): self {
         return new self(...get_defined_vars());
     }
 
