@@ -1,8 +1,8 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain;
+namespace FluxEco\IliasUserOrbital\Core\Domain;
 
-use FluxEco\IliasUserApi\Core\Domain\Messages\AdditionalFieldsValuesChanged;
+use FluxEco\IliasUserOrbital\Core\Domain\Messages\AdditionalFieldsValuesChanged;
 
 class UserAggregate
 {
@@ -30,7 +30,7 @@ class UserAggregate
         $this->additionalFields[$additionalField->fieldName] = $additionalField;
     }
 
-    private function recordMessage(Messages\Message $message): void  {
+    private function recordMessage(Messages\OutgoingMessage $message): void  {
         $this->recordedMessages[] = $message;
     }
 
@@ -92,52 +92,37 @@ class UserAggregate
     public function changeAdditionalFields(array $additionalFields) : void
     {
         $additionalFieldsHasChanged = false;
-
-        $fieldNamesToHandle = [];
         if (count($additionalFields) > 0) {
-            foreach ($additionalFields as $newAdditionalFieldValue) {
-                if (array_key_exists($newAdditionalFieldValue->fieldName,$this->additionalFields) === false || $this->additionalFields[$newAdditionalFieldValue->fieldName]->fieldValue === "" && $newAdditionalFieldValue->fieldValue !== "") {
-                    $additionalFieldsHasChanged = true;
-                    $this->recordMessage(Messages\AdditionalFieldValueAdded::new(
-                        $this->userId,
-                        $newAdditionalFieldValue
-                    ));
-                    continue;
-                }
-
-                if (array_key_exists($newAdditionalFieldValue->fieldName,$this->additionalFields) === true && $this->additionalFields[$newAdditionalFieldValue->fieldName]->fieldValue !== "" && $newAdditionalFieldValue->fieldValue === "") {
-                    $additionalFieldsHasChanged = true;
-                    $this->recordMessage(Messages\AdditionalFieldValueRemoved::new(
-                        $this->userId,
-                        $newAdditionalFieldValue
-                    ));
-                    continue;
-                }
-
-                $currentAdditionalFieldValue = $this->additionalFields[$newAdditionalFieldValue->fieldName];
-                if ($currentAdditionalFieldValue->isEqual($newAdditionalFieldValue) === false) {
+            foreach ($additionalFields as $newAdditionalField) {
+                if (array_key_exists($newAdditionalField->fieldName,$this->additionalFields) === false) {
                     $additionalFieldsHasChanged = true;
                     $this->recordMessage(Messages\AdditionalFieldValueChanged::new(
-                        $this->userId,
-                        $newAdditionalFieldValue,
-                        $currentAdditionalFieldValue
+                        $this->userId->id,
+                        $newAdditionalField->fieldName,
+                        $newAdditionalField->fieldValue,
+                        null
                     ));
+                    continue;
                 }
 
-
+                $currentField = $this->additionalFields[$newAdditionalField->fieldName];
+                if($currentField->isEqual($newAdditionalField) === false) {
+                    $additionalFieldsHasChanged = true;
+                    $this->recordMessage(Messages\AdditionalFieldValueChanged::new(
+                        $this->userId->id,
+                        $newAdditionalField->fieldName,
+                        $newAdditionalField->fieldValue,
+                        $currentField->fieldValue
+                    ));
+                }
             }
         }
-
-        /*if(count($additionalFields) === 0 && count($this->additionalFields) > 0) {
-            $additionalFieldsHasChanged = true;
-        }*/
 
         if ($additionalFieldsHasChanged === true) {
             $message = AdditionalFieldsValuesChanged::new($this->userId, $additionalFields);
             $this->applyAdditionalFieldsChanged($message);
             $this->recordMessage($message);
         }
-
     }
 
     private function applyAdditionalFieldsChanged(

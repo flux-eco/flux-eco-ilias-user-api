@@ -1,10 +1,10 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain\Messages;
+namespace FluxEco\IliasUserOrbital\Core\Domain\Messages;
 
-use FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class UserDataChanged implements Message
+class UserDataChanged implements OutgoingMessage
 {
 
     private function __construct(
@@ -26,5 +26,10 @@ class UserDataChanged implements Message
     public function getName(): MessageName
     {
         return MessageName::USER_DATA_CHANGED;
+    }
+
+    public function getAddress() : string
+    {
+        // TODO: Implement getAddress() method.
     }
 }

@@ -1,29 +1,36 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain\Messages;
+namespace FluxEco\IliasUserOrbital\Core\Domain\Messages;
 
-use FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class AdditionalFieldValueChanged implements Message
+class AdditionalFieldValueChanged implements OutgoingMessage
 {
     private function __construct(
-        public ValueObjects\UserId $userId,
-        public ValueObjects\AdditionalField $newAdditionalFieldValue,
-        public ValueObjects\AdditionalField $oldAdditionalFieldValue
+        public string $userId,
+        public string $additionalFieldName,
+        public null|int|string $newAdditionalFieldValue,
+        public null|int|string $oldAdditionalFieldValue
     ) {
 
     }
 
     public static function new(
-        ValueObjects\UserId $userId,
-        ValueObjects\AdditionalField $newAdditionalFieldValue,
-        ValueObjects\AdditionalField $oldAdditionalFieldValue
+        string $userId,
+        string $additionalFieldName,
+        null|int|string $newAdditionalFieldValue,
+        null|int|string $oldAdditionalFieldValue
     ) : self {
-        return new self($userId, $newAdditionalFieldValue, $oldAdditionalFieldValue);
+        return new self($userId, $additionalFieldName, $newAdditionalFieldValue, $oldAdditionalFieldValue);
     }
 
     public function getName() : MessageName
     {
         return MessageName::ADDITIONAL_FIELD_VALUE_CHANGED;
+    }
+
+    public function getAddress() : string
+    {
+        return MessageName::ADDITIONAL_FIELD_VALUE_CHANGED->value;
     }
 }

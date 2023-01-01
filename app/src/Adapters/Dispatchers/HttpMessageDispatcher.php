@@ -1,10 +1,10 @@
 <?php
 
-namespace  FluxEco\IliasUserApi\Adapters\Dispatchers;
+namespace  FluxEco\IliasUserOrbital\Adapters\Dispatchers;
 
-use FluxEco\IliasUserApi\Adapters\Config;
-use FluxEco\IliasUserApi\Core\Ports;
-use FluxEco\IliasUserApi\Core\Domain;
+use FluxEco\IliasUserOrbital\Adapters\Config;
+use FluxEco\IliasUserOrbital\Core\Ports;
+use FluxEco\IliasUserOrbital\Core\Domain;
 
 class HttpMessageDispatcher implements Ports\User\UserMessageDispatcher
 {
@@ -21,33 +21,53 @@ class HttpMessageDispatcher implements Ports\User\UserMessageDispatcher
         return new self($config);
     }
 
-    public function dispatch(Domain\Messages\Message $message): void
+    public function dispatch(Domain\Messages\OutgoingMessage $message): void
     {
-        match ($message->getName()) {
-            Domain\Messages\MessageName::CREATED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_USER_CREATED)),
-            Domain\Messages\MessageName::USER_DATA_CHANGED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_USER_DATA_CHANGED)),
-            Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_ADDED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_ADDITIONAL_FIELD_VALUE_ADDED)),
-            Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_CHANGED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_ADDITIONAL_FIELD_VALUE_CHANGED)),
-            Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_REMOVED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_ADDITIONAL_FIELD_VALUE_REMOVED)),
-            Domain\Messages\MessageName::ADDITIONAL_FIELDS_VALUES_CHANGED => $this->publish($message, $this->config->get(Config\EnvName::HTTP_ENDPOINT_ADDITIONAL_FIELDS_VALUES_CHANGED)),
-        };
-    }
-
-    private function publish(Domain\Messages\Message $message, array $endpoints) : void
-    {
-        if(count($endpoints) === 0) {
+        $tasks = $this->config->getOutgoingTasks($message->getAddress());
+        if($tasks === null) {
             return;
         }
+        foreach($tasks as $task) {
+            $address = $task->address;
+            if($task->parameters !== null) {
+                foreach($task->parameters as $parameter) {
+                    $address = $this->replaceParameter($address, $parameter, $message);
+                }
+            }
+            $payload = $task->message->payload;
+            if(property_exists($payload, 'location') === true) {
+                if(str_contains('$message.payload#', $payload->location) === true) {
+                    $payload = $message;
+                }
+            }
+            $this->publish($payload, $task->server."/".$address);
+        }
+    }
+
+    private function replaceParameter(string $address, object $parameter, Domain\Messages\OutgoingMessage $message): string {
+        if(str_contains('$message.payload#', $parameter->location) === true)  {
+            $location = explode('$message.payload#/', $parameter->location)[1];
+            $messageAttributePath =  explode('/', $location);
+            $value = $message;
+            foreach($messageAttributePath as $attributeName) {
+                $value = $value->{$attributeName};
+            }
+            $address = str_replace('{'.$parameter->name.'}', $address, $value);
+        }
+        return $address;
+    }
+
+    private function publish(object $payload, string $address) : void
+    {
+        echo $address.PHP_EOL;
         $ch = curl_init();
         $responses = [];
-
-        foreach ($endpoints as $endpoint) {
-            curl_setopt($ch, CURLOPT_URL, $endpoint);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $responses[] = curl_exec($ch);
-            curl_close($ch);
-        }
+        curl_setopt($ch, CURLOPT_URL, $address);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $responses[] = curl_exec($ch);
+        print_r($responses);
+        curl_close($ch);
     }
 }

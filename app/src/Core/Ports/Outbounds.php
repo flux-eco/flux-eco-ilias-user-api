@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Ports;
+namespace FluxEco\IliasUserOrbital\Core\Ports;
 
 class  Outbounds {
 

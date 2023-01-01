@@ -1,10 +1,10 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain\Messages;
+namespace FluxEco\IliasUserOrbital\Core\Domain\Messages;
 
-use FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class AdditionalFieldsValuesChanged implements Message
+class AdditionalFieldsValuesChanged implements OutgoingMessage
 {
 
     /**
@@ -29,5 +29,10 @@ class AdditionalFieldsValuesChanged implements Message
     public function getName() : MessageName
     {
         return MessageName::ADDITIONAL_FIELDS_VALUES_CHANGED;
+    }
+
+    public function getAddress() : string
+    {
+        return MessageName::ADDITIONAL_FIELDS_VALUES_CHANGED->value;
     }
 }

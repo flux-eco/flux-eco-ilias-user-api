@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Ports\Task;
+namespace FluxEco\IliasUserOrbital\Core\Ports\Task;
 
 enum TaskName: string
 {

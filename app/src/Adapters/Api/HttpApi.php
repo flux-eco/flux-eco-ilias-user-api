@@ -1,11 +1,11 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Adapters\Api;
+namespace FluxEco\IliasUserOrbital\Adapters\Api;
 
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
 use Swoole\Http;
-use FluxEco\IliasUserApi\Adapters;
-use FluxEco\IliasUserApi\Core\Ports;
+use FluxEco\IliasUserOrbital\Adapters;
+use FluxEco\IliasUserOrbital\Core\Ports;
 
 class HttpApi
 {
@@ -38,13 +38,16 @@ class HttpApi
     {
         $requestUri = $request->server['request_uri'];
 
-
         match (true) {
-            str_contains($requestUri, Ports\Task\TaskName::CREATE_OR_UPDATE_USER->value) => $this->service->createOrUpdateUser(
-                Ports\User\UserDto::fromJson($request->rawContent()),
+            str_contains($requestUri, Ports\Messages\IncomingMessageName::CREATE_OR_UPDATE_USER->value) => $this->service->createOrUpdateUser(
+                Ports\Messages\CreateOrUpdateUser::fromJson($request->rawContent()),
                 $this->publish($response)
-            ), //todo secret
-            default => $this->publish($response)($requestUri)
+            ),
+            str_contains($requestUri, Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_COURSES_BY_REF_IDS->value) => $this->service->subscribeToCoursesByRefIds(
+                Ports\Messages\SubscribeToCoursesByRefIds::fromJson($request->rawContent(), $this->getAttribute(Ports\Task\AttributeName::USER_ID_TYPE->value, $requestUri),  $this->getAttribute(Ports\Task\AttributeName::USER_ID->value, $requestUri)),
+                $this->publish($response)
+            ),
+            default => $this->publish($response)("address not valid: ".$requestUri)
         };
     }
 

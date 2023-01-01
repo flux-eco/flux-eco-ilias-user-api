@@ -1,4 +1,4 @@
-FROM fluxms/flux-eco-biotope:1.5.0 AS flux-eco-ilias-user-api
+FROM fluxms/flux-eco-biotope:1.5.0 AS flux-eco-ilias-user-orbital
 COPY --chown=www-data:www-data ./app /app
 USER www-data
 WORKDIR /app

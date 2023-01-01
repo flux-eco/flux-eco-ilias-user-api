@@ -1,8 +1,8 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Ports;
+namespace FluxEco\IliasUserOrbital\Core\Ports;
 
-use FluxEco\IliasUserApi\Core\Domain;
+use FluxEco\IliasUserOrbital\Core\Domain;
 
 class Service
 {
@@ -24,34 +24,49 @@ class Service
      * @param callable $publish
      * @return void
      */
-    public function createOrUpdateUser(User\UserDto $userDto, callable $publish) : void
+    public function createOrUpdateUser(Messages\CreateOrUpdateUser $message, callable $publish) : void
     {
-        $iliasUser = $this->outbounds->userRepository->get($userDto->userId);
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
         $aggregate = Domain\UserAggregate::new(
-            $userDto->userId,
+            $message->userId,
         );
         if ($iliasUser === null) {
-            $this->createUser($aggregate, $userDto);
+            $this->createUser($aggregate, $message->userData, $message->additionalFields);
         } else {
             $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
-            $this->updateUser($aggregate, $userDto);
+            $this->updateUser($aggregate, $message->userData, $message->additionalFields);
         }
 
         $recordedMessages = $aggregate->getAndResetRecordedMessages();
 
         $this->outbounds->userRepository->handleMessages($recordedMessages);
-        $this->dispatchMessages($recordedMessages,  $publish);
+        $this->dispatchMessages($recordedMessages, $publish);
     }
 
-    private function createUser(Domain\UserAggregate $aggregate, User\UserDto $userDto) : void
+    /**
+     * @param callable $publish
+     * @return void
+     */
+    public function subscribeToCoursesByRefIds(Messages\SubscribeToCoursesByRefIds $message, callable $publish) : void
     {
-        $aggregate->create($userDto->userData, $userDto->additionalFields);
+        $this->dispatchMessages([$message], $publish);
     }
 
-    private function updateUser(Domain\UserAggregate $aggregate, User\UserDto $userDataToUpdate) : void
-    {
-        $aggregate->changeUserData($userDataToUpdate->userData);
-        $aggregate->changeAdditionalFields($userDataToUpdate->additionalFields);
+    private function createUser(
+        Domain\UserAggregate $aggregate,
+        Domain\ValueObjects\UserData $userData,
+        array $additionalFields
+    ) : void {
+        $aggregate->create($userData, $additionalFields);
+    }
+
+    private function updateUser(
+        Domain\UserAggregate $aggregate,
+        Domain\ValueObjects\UserData $userData,
+        array $additionalFields
+    ) : void {
+        $aggregate->changeUserData($userData);
+        $aggregate->changeAdditionalFields($additionalFields);
     }
 
     private function dispatchMessages(array $recordedMessages, callable $publish)

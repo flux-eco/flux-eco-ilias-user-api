@@ -1,7 +1,7 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Adapters\Repositories\IliasUser;
-use FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+namespace FluxEco\IliasUserOrbital\Adapters\Repositories\IliasUser;
+use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 use FluxIliasRestApiClient\Libs\FluxIliasBaseApi\Adapter\User\UserDiffDto;
 use stdClass;
 

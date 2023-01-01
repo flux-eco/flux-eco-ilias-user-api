@@ -1,37 +1,30 @@
 <?php
 
-namespace FluxEco\IliasUserOrbital\Core\Ports\User;
+namespace FluxEco\IliasUserOrbital\Core\Ports\Messages;
 
 use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class UserDto
+class CreateOrUpdateUser implements IncomingMessage
 {
-    /**
-     * @param ValueObjects\AdditionalField[] $additionalFields
-     */
     private function __construct(
-        public readonly ValueObjects\UserId $userId,
-        public readonly ValueObjects\UserData $userData,
-        public readonly array $additionalFields
+        public ValueObjects\UserId $userId,
+        public ValueObjects\UserData $userData,
+        public array $additionalFields
     ) {
 
     }
 
-    /**
-     * @param ValueObjects\AdditionalField[] $additionalFields
-     * @return static
-     */
     public static function new(
         ValueObjects\UserId $userId,
         ValueObjects\UserData $userData,
         array $additionalFields
     ) : self {
-        return new self(...get_defined_vars());
+        return new self(
+            ...get_defined_vars()
+        );
     }
 
-    public static function fromJson(
-        string $json
-    ) : self {
+    public static function fromJson(string $json) {
         $obj = json_decode($json);
 
         $additionalFields = [];
@@ -58,5 +51,10 @@ class UserDto
             ),
             $additionalFields
         );
+    }
+
+    public function getName() : IncomingMessageName
+    {
+        return IncomingMessageName::CREATE_OR_UPDATE_USER;
     }
 }

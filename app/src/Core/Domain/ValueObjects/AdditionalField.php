@@ -1,6 +1,6 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+namespace FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
 class AdditionalField
 {

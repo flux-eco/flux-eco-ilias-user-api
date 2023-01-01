@@ -1,11 +1,11 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Adapters\Repositories\IliasUser;
+namespace FluxEco\IliasUserOrbital\Adapters\Repositories\IliasUser;
 
-use FluxEco\IliasUserApi\Core\Ports;
-use FluxEco\IliasUserApi\Core\Domain;
+use FluxEco\IliasUserOrbital\Core\Ports;
+use FluxEco\IliasUserOrbital\Core\Domain;
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
-use FluxEco\IliasUserApi\Core\Ports\User\UserDto;
+use FluxEco\IliasUserOrbital\Core\Ports\User\UserDto;
 
 class IliasUserRepository implements Ports\User\UserRepository
 {
@@ -30,7 +30,7 @@ class IliasUserRepository implements Ports\User\UserRepository
                 Domain\Messages\MessageName::CREATED => $this->create($message),
                 Domain\Messages\MessageName::USER_DATA_CHANGED => $this->changeUserData($message),
                 Domain\Messages\MessageName::ADDITIONAL_FIELDS_VALUES_CHANGED => $this->changeAdditionalFields($message),
-                Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_ADDED, Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_REMOVED, Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_CHANGED, Domain\Messages\MessageName::USER_GROUP_ADDED => []
+                Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_CHANGED, Domain\Messages\MessageName::USER_GROUP_ADDED => []
             };
         }
     }
@@ -73,6 +73,7 @@ class IliasUserRepository implements Ports\User\UserRepository
     private function changeAdditionalFields(
         Domain\Messages\AdditionalFieldsValuesChanged $message,
     ) : void {
+        return;
         $this->iliasRestApiClient->updateUserByImportId(
             $message->userId->id,
             IliasUserDefinedFieldAdapter::fromDomain($message->additionalFieldsValues)->toUserDiffDto()

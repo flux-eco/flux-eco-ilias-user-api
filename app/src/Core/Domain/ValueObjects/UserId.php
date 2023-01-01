@@ -1,20 +1,23 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Domain\ValueObjects;
+namespace FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
 class UserId
 {
     private function __construct(
-        public readonly string $id
+        public readonly string $id,
+        public string $idType
     ) {
 
     }
 
     public static function new(
-        string $id
+        string $id,
+        string $idType = "user-import-id"
     ) : self {
         return new self(
-            $id
+            $id,
+            $idType
         );
     }
 

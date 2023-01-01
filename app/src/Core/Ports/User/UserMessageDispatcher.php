@@ -1,8 +1,8 @@
 <?php
 
-namespace FluxEco\IliasUserApi\Core\Ports\User;
-use FluxEco\IliasUserApi\Core\Domain;
+namespace FluxEco\IliasUserOrbital\Core\Ports\User;
+use FluxEco\IliasUserOrbital\Core\Domain;
 
 interface UserMessageDispatcher {
-    public function dispatch(Domain\Messages\Message $message);
+    public function dispatch(Domain\Messages\OutgoingMessage $message);
 }
