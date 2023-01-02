@@ -32,9 +32,7 @@ class Config
         if(property_exists($messageConfig, "tasks")) {
             foreach($messageConfig->tasks as $task) {
                 $tasks[] = Task::new(
-                    $task->server,
                     $task->address,
-                    $task->parameters,
                     $task->message
                 );
             }

@@ -1,6 +1,6 @@
 <?php
 
-namespace  FluxEco\IliasUserOrbital\Adapters\Dispatchers;
+namespace FluxEco\IliasUserOrbital\Adapters\Dispatchers;
 
 use FluxEco\IliasUserOrbital\Adapters\Config;
 use FluxEco\IliasUserOrbital\Core\Ports;
@@ -20,46 +20,63 @@ class HttpMessageDispatcher implements Ports\User\UserMessageDispatcher
     ) : self {
         return new self($config);
     }
-
-    public function dispatch(Domain\Messages\OutgoingMessage $message): void
+    public function dispatch(Domain\Messages\OutgoingMessage $messageToDispatch) : void
     {
-        $tasks = $this->config->getOutgoingTasks($message->getAddress());
-        if($tasks === null) {
+        $tasks = $this->config->getOutgoingTasks(str_replace(" ","%20",$messageToDispatch->getAddress()));
+        if ($tasks === null) {
             return;
         }
-        foreach($tasks as $task) {
-            $address = $task->address;
-            if($task->parameters !== null) {
-                foreach($task->parameters as $parameter) {
-                    $address = $this->replaceParameter($address, $parameter, $message);
+
+        foreach ($tasks as $task) {
+            if (str_contains($task->address->server->protocol, "http") === false) {
+                continue;
+            }
+
+            $addressPath = $task->address->path;
+            if ($task->address->parameters !== null) {
+                foreach ((array)$task->address->parameters as $parameterName => $parameter) {
+                    $addressPath = $this->replaceParameter($addressPath, $parameterName, $parameter, $messageToDispatch);
                 }
             }
-            $payload = $task->message->payload;
-            if(property_exists($payload, 'location') === true) {
-                if(str_contains('$message.payload#', $payload->location) === true) {
-                    $payload = $message;
+            $message = $task->message;
+            if (property_exists($message, '$merge') === true) {
+                if (str_contains($message->{'$merge'}, '{$message}') === true) {
+                    unset($message->{'$merge'});
+                    $message = (object) array_merge(
+                        (array) $message, (array) $messageToDispatch);
                 }
             }
-            $this->publish($payload, $task->server."/".$address);
+
+            if (property_exists($message, '$location') === true) {
+                if (str_contains($message->{'$location'}, '{$message}') === true) {
+                    $message = $messageToDispatch;
+                }
+            }
+
+            $this->publish($message,
+                $task->address->server->protocol . "://" . $task->address->server->url . "/" . $addressPath);
         }
     }
 
-    private function replaceParameter(string $address, object $parameter, Domain\Messages\OutgoingMessage $message): string {
-        if(str_contains('$message.payload#', $parameter->location) === true)  {
-            $location = explode('$message.payload#/', $parameter->location)[1];
+    private function replaceParameter(string $address, string $parameterName, object $parameter, Domain\Messages\OutgoingMessage $message): string {
+        if(str_contains($parameter->location, '{$message}') === true)  {
+            $location = ltrim($parameter->location, '{$message}');
             $messageAttributePath =  explode('/', $location);
             $value = $message;
             foreach($messageAttributePath as $attributeName) {
                 $value = $value->{$attributeName};
             }
-            $address = str_replace('{'.$parameter->name.'}', $address, $value);
+            $address = str_replace('{'.$parameterName.'}', $value, $address);
         }
         return $address;
     }
 
+
     private function publish(object $payload, string $address) : void
     {
-        echo $address.PHP_EOL;
+        echo "send message: ". PHP_EOL;
+        echo $address . PHP_EOL;
+        echo json_encode($payload, JSON_PRETTY_PRINT). PHP_EOL;
         $ch = curl_init();
         $responses = [];
         curl_setopt($ch, CURLOPT_URL, $address);

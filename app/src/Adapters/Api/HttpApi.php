@@ -39,15 +39,27 @@ class HttpApi
         $requestUri = $request->server['request_uri'];
 
         match (true) {
-            str_contains($requestUri, Ports\Messages\IncomingMessageName::CREATE_OR_UPDATE_USER->value) => $this->service->createOrUpdateUser(
+            str_contains($requestUri,
+                Ports\Messages\IncomingMessageName::CREATE_OR_UPDATE_USER->value) => $this->service->createOrUpdateUser(
                 Ports\Messages\CreateOrUpdateUser::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
-            str_contains($requestUri, Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_COURSES_BY_REF_IDS->value) => $this->service->subscribeToCoursesByRefIds(
-                Ports\Messages\SubscribeToCoursesByRefIds::fromJson($request->rawContent(), $this->getAttribute(Ports\Task\AttributeName::USER_ID_TYPE->value, $requestUri),  $this->getAttribute(Ports\Task\AttributeName::USER_ID->value, $requestUri)),
+            str_contains($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_COURSES->value) => $this->service->subscribeToCourses(
+                Ports\Messages\SubscribeToCourses::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
-            default => $this->publish($response)("address not valid: ".$requestUri)
+            str_contains($requestUri,
+                Ports\Messages\IncomingMessageName::UNSUBSCRIBE_FROM_COURSES->value) => $this->service->unsubscribeFromCourses(
+                Ports\Messages\UnsubscribeFromCourses::fromJson($request->rawContent()),
+                $this->publish($response)
+            ),
+            str_contains($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_ROLES->value) => $this->service->subscribeToRoles(
+                Ports\Messages\SubscribeToRoles::fromJson($request->rawContent()),
+                $this->publish($response)
+            ),
+            default => $this->publish($response)("address not valid: " . $requestUri)
         };
     }
 

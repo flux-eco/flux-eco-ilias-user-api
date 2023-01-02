@@ -46,7 +46,8 @@ class UserDto
 
         return new self(
             ValueObjects\UserId::new(
-                $obj->userId->id
+                $obj->userId->id,
+                ValueObjects\IdType::from($obj->userId->idType)
             ),
             ValueObjects\UserData::new(
                 $obj->userData->email,

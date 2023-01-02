@@ -43,13 +43,40 @@ class Service
         $this->dispatchMessages($recordedMessages, $publish);
     }
 
-    /**
-     * @param callable $publish
-     * @return void
-     */
-    public function subscribeToCoursesByRefIds(Messages\SubscribeToCoursesByRefIds $message, callable $publish) : void
+    public function subscribeToCourses(Messages\SubscribeToCourses $message, callable $publish) : void
     {
-        $this->dispatchMessages([$message], $publish);
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
+        $aggregate = Domain\UserAggregate::new(
+            $message->userId,
+        );
+        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+        $aggregate->subscribeToCourses($message->courseRoleName,  $message->courseIdType, $message->courseIds);
+        $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
+        $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
+    }
+
+    public function unsubscribeFromCourses(Messages\UnsubscribeFromCourses $message, callable $publish) : void
+    {
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
+        $aggregate = Domain\UserAggregate::new(
+            $message->userId,
+        );
+        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+        $aggregate->unsubscribeFromCourses($message->courseIdType, $message->courseIds);
+        $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
+        $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
+    }
+
+    public function subscribeToRoles(Messages\SubscribeToRoles $message, callable $publish) : void
+    {
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
+        $aggregate = Domain\UserAggregate::new(
+            $message->userId,
+        );
+        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+        $aggregate->subscribeToRoles($message->roleIdType, $message->roleIds);
+        $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
+        $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
     }
 
     private function createUser(

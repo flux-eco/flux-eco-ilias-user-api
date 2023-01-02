@@ -6,14 +6,14 @@ class UserId
 {
     private function __construct(
         public readonly string $id,
-        public string $idType
+        public IdType $idType
     ) {
 
     }
 
     public static function new(
         string $id,
-        string $idType = "user-import-id"
+        IdType $idType
     ) : self {
         return new self(
             $id,

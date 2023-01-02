@@ -6,6 +6,7 @@ use FluxEco\IliasUserOrbital\Core\Ports;
 use FluxEco\IliasUserOrbital\Core\Domain;
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
 use FluxEco\IliasUserOrbital\Core\Ports\User\UserDto;
+use FluxIliasRestApiClient\Libs\FluxIliasBaseApi\Adapter\CourseMember\CourseMemberDiffDto;
 
 class IliasUserRepository implements Ports\User\UserRepository
 {
@@ -30,7 +31,10 @@ class IliasUserRepository implements Ports\User\UserRepository
                 Domain\Messages\MessageName::CREATED => $this->create($message),
                 Domain\Messages\MessageName::USER_DATA_CHANGED => $this->changeUserData($message),
                 Domain\Messages\MessageName::ADDITIONAL_FIELDS_VALUES_CHANGED => $this->changeAdditionalFields($message),
-                Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_CHANGED, Domain\Messages\MessageName::USER_GROUP_ADDED => []
+                Domain\Messages\MessageName::USER_SUBSCRIBED_TO_COURSES => $this->subscribeToCourses($message),
+                Domain\Messages\MessageName::USER_UNSUBSCRIBED_FROM_COURSES => $this->unsubscribeFromCourses($message),
+                Domain\Messages\MessageName::USER_SUBSCRIBED_TO_ROLES => $this->subscribeToRoles($message),
+                Domain\Messages\MessageName::ADDITIONAL_FIELD_VALUE_CHANGED, Domain\Messages\MessageName::USER_GROUP_ADDED => [],
             };
         }
     }
@@ -53,27 +57,55 @@ class IliasUserRepository implements Ports\User\UserRepository
     }
 
     private function subscribeToCourses(
-        Domain\ValueObjects\UserId $userId,
-        array $courseRefIds
+        Domain\Messages\UserSubscribedToCourses $message,
     ) : void {
-        /*$courseRefIds  = [];
-        foreach ($mediFacultyIds as $facultyId) {
-            $refIds =  $this->courseRefIdsPerRoleRepository->getCourseRefIds(MediRole::new(MediFacultyId::from($facultyId), $mediRoleId));
-            if($refIds !== null) {
-                $courseRefIds = [...$refIds];
+        foreach ($message->courseIds as $id) {
+            if ($message->courseIdType === Domain\ValueObjects\IdType::REF_ID && $message->userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
+                match ($message->courseRoleName) {
+                    Domain\ValueObjects\CourseRoleName::MEMBER => $this->iliasRestApiClient->addCourseMemberByRefIdByUserImportId(
+                        $id,
+                        $message->userId->id, CourseMemberDiffDto::new(true)
+                    ),
+                    Domain\ValueObjects\CourseRoleName::TUTOR => $this->iliasRestApiClient->addCourseMemberByRefIdByUserImportId(
+                        $id,
+                        $message->userId->id, CourseMemberDiffDto::new(null, true)
+                    ),
+                    Domain\ValueObjects\CourseRoleName::ADMIN => $this->iliasRestApiClient->addCourseMemberByRefIdByUserImportId(
+                        $id,
+                        $message->userId->id, CourseMemberDiffDto::new(null, null, true)
+                    ),
+                };
+            }
+
+        }
+    }
+
+    private function unsubscribeFromCourses(
+        Domain\Messages\UserUnsubscribedFromCourses $message,
+    ) : void {
+        foreach ($message->courseIds as $id) {
+            if ($message->courseIdType === Domain\ValueObjects\IdType::REF_ID && $message->userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
+                $this->iliasRestApiClient->removeCourseMemberByRefIdByUserImportId($id, $message->userId->id);
             }
         }
+    }
 
-        foreach($courseRefIds  as $courseRefId) {
-            echo $courseRefId; echo $userId;
-            $this->iliasRestApiClient->addCourseMemberByRefIdByUserImportId($courseRefId,$userId,CourseMemberDiffDto::new(true));
-        }*/
+    private function subscribeToRoles(
+        Domain\Messages\UserSubscribedToRoles $message,
+    ) : void {
+        foreach ($message->roleIds as $id) {
+            if ($message->roleIdType === Domain\ValueObjects\IdType::OBJ_ID && $message->userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
+                $this->iliasRestApiClient->addUserRoleByImportIdByRoleId(
+                    $message->userId->id,
+                    $id
+                );
+            }
+        }
     }
 
     private function changeAdditionalFields(
         Domain\Messages\AdditionalFieldsValuesChanged $message,
     ) : void {
-        return;
         $this->iliasRestApiClient->updateUserByImportId(
             $message->userId->id,
             IliasUserDefinedFieldAdapter::fromDomain($message->additionalFieldsValues)->toUserDiffDto()

@@ -5,7 +5,7 @@ require_once "./autoload.php";
 $server = new Swoole\HTTP\Server('0.0.0.0', 9501);
 
 $server->set([
-    'worker_num' => 1,      // The number of worker processes to start
+    'worker_num' => 10,      // The number of worker processes to start
     'task_worker_num' => 4,  // The amount of task workers to start
     'backlog' => 128,       // TCP backlog connection number
     'daemonize' => false,

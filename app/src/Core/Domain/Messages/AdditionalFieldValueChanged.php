@@ -7,7 +7,7 @@ use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 class AdditionalFieldValueChanged implements OutgoingMessage
 {
     private function __construct(
-        public string $userId,
+        public ValueObjects\UserId $userId,
         public string $additionalFieldName,
         public null|int|string $newAdditionalFieldValue,
         public null|int|string $oldAdditionalFieldValue
@@ -16,7 +16,7 @@ class AdditionalFieldValueChanged implements OutgoingMessage
     }
 
     public static function new(
-        string $userId,
+        ValueObjects\UserId $userId,
         string $additionalFieldName,
         null|int|string $newAdditionalFieldValue,
         null|int|string $oldAdditionalFieldValue
@@ -31,6 +31,6 @@ class AdditionalFieldValueChanged implements OutgoingMessage
 
     public function getAddress() : string
     {
-        return MessageName::ADDITIONAL_FIELD_VALUE_CHANGED->value;
+        return "additional-field-name/".$this->additionalFieldName."/".MessageName::ADDITIONAL_FIELD_VALUE_CHANGED->value;
     }
 }

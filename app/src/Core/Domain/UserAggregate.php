@@ -2,7 +2,7 @@
 
 namespace FluxEco\IliasUserOrbital\Core\Domain;
 
-use FluxEco\IliasUserOrbital\Core\Domain\Messages\AdditionalFieldsValuesChanged;
+use FluxEco\IliasUserOrbital\Core\Domain\Messages;
 
 class UserAggregate
 {
@@ -12,6 +12,7 @@ class UserAggregate
      * @var ValueObjects\AdditionalField[]
      */
     public array $additionalFields = [];
+    public array $courseSubscriptionIds = [];
 
     private function __construct(
         public readonly ValueObjects\UserId $userId
@@ -30,11 +31,13 @@ class UserAggregate
         $this->additionalFields[$additionalField->fieldName] = $additionalField;
     }
 
-    private function recordMessage(Messages\OutgoingMessage $message): void  {
+    private function recordMessage(Messages\OutgoingMessage $message) : void
+    {
         $this->recordedMessages[] = $message;
     }
 
-    public function getAndResetRecordedMessages(): array {
+    public function getAndResetRecordedMessages() : array
+    {
         $messages = $this->recordedMessages;
         $this->recordedMessages = [];
         return $messages;
@@ -48,8 +51,9 @@ class UserAggregate
         array $additionalFields
     ) : void {
         $this->applyCreated(Messages\Created::new($this->userId, $userData));
-        if(count($additionalFields) > 0) {
-            $this->applyAdditionalFieldsChanged(Messages\AdditionalFieldsValuesChanged::new($this->userId, $additionalFields));
+        if (count($additionalFields) > 0) {
+            $this->applyAdditionalFieldsChanged(Messages\AdditionalFieldsValuesChanged::new($this->userId,
+                $additionalFields));
         }
     }
 
@@ -94,10 +98,10 @@ class UserAggregate
         $additionalFieldsHasChanged = false;
         if (count($additionalFields) > 0) {
             foreach ($additionalFields as $newAdditionalField) {
-                if (array_key_exists($newAdditionalField->fieldName,$this->additionalFields) === false) {
+                if (array_key_exists($newAdditionalField->fieldName, $this->additionalFields) === false) {
                     $additionalFieldsHasChanged = true;
                     $this->recordMessage(Messages\AdditionalFieldValueChanged::new(
-                        $this->userId->id,
+                        $this->userId,
                         $newAdditionalField->fieldName,
                         $newAdditionalField->fieldValue,
                         null
@@ -106,10 +110,10 @@ class UserAggregate
                 }
 
                 $currentField = $this->additionalFields[$newAdditionalField->fieldName];
-                if($currentField->isEqual($newAdditionalField) === false) {
+                if ($currentField->isEqual($newAdditionalField) === false) {
                     $additionalFieldsHasChanged = true;
                     $this->recordMessage(Messages\AdditionalFieldValueChanged::new(
-                        $this->userId->id,
+                        $this->userId,
                         $newAdditionalField->fieldName,
                         $newAdditionalField->fieldValue,
                         $currentField->fieldValue
@@ -119,20 +123,38 @@ class UserAggregate
         }
 
         if ($additionalFieldsHasChanged === true) {
-            $message = AdditionalFieldsValuesChanged::new($this->userId, $additionalFields);
+            $message = Messages\AdditionalFieldsValuesChanged::new($this->userId, $additionalFields);
             $this->applyAdditionalFieldsChanged($message);
             $this->recordMessage($message);
         }
     }
 
     private function applyAdditionalFieldsChanged(
-        AdditionalFieldsValuesChanged $message
-    ) {
+        Messages\AdditionalFieldsValuesChanged $message
+    ): void {
         $this->additionalFields = [];
         if (count($message->additionalFieldsValues) > 0) {
             foreach ($message->additionalFieldsValues as $additionalField) {
                 $this->appendAdditionalField($additionalField);
             }
         }
+    }
+
+    public function subscribeToCourses(ValueObjects\CourseRoleName $courseRoleName, ValueObjects\IdType $courseIdType, array $courseIds): void
+    {
+        $message = Messages\UserSubscribedToCourses::new($this->userId,$courseRoleName, $courseIdType, $courseIds);
+        $this->recordMessage($message);
+    }
+
+    public function unsubscribeFromCourses(ValueObjects\IdType $courseIdType, array $courseIds): void
+    {
+        $message = Messages\UserUnsubscribedFromCourses::new($this->userId, $courseIdType, $courseIds);
+        $this->recordMessage($message);
+    }
+
+    public function subscribeToRoles(ValueObjects\IdType $roleIdType, array $roleIdIds): void
+    {
+        $message = Messages\UserSubscribedToRoles::new($this->userId, $roleIdType, $roleIdIds);
+        $this->recordMessage($message);
     }
 }
