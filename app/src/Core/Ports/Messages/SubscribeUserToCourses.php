@@ -4,21 +4,23 @@ namespace FluxEco\IliasUserOrbital\Core\Ports\Messages;
 
 use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class SubscribeToRoles implements IncomingMessage
+class SubscribeUserToCourses implements IncomingMessage
 {
 
     private function __construct(
         public ValueObjects\UserId $userId,
-        public ValueObjects\IdType $roleIdType,
-        public array $roleIds
+        public ValueObjects\CourseRoleName $courseRoleName,
+        public ValueObjects\IdType $courseIdType,
+        public array $courseIds
     ) {
 
     }
 
     public static function new(
         ValueObjects\UserId $userId,
-        ValueObjects\IdType $roleIdType,
-        array $roleIds
+        ValueObjects\CourseRoleName $courseRoleName,
+        ValueObjects\IdType $courseIdType,
+        array $courseIds
     ) : self {
         return new self(
             ...get_defined_vars()
@@ -33,14 +35,15 @@ class SubscribeToRoles implements IncomingMessage
                 $obj->userId->id,
                 ValueObjects\IdType::from($obj->userId->idType),
             ),
-            ValueObjects\IdType::from($obj->roleIdType),
-            $obj->roleIds
+            ValueObjects\CourseRoleName::from($obj->courseRoleName),
+            ValueObjects\IdType::from($obj->courseIdType),
+            $obj->courseIds
         );
     }
 
     public function getName() : IncomingMessageName
     {
-        return IncomingMessageName::SUBSCRIBE_TO_COURSES;
+        return IncomingMessageName::SUBSCRIBE_USER_TO_COURSES;
     }
 
 }

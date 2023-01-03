@@ -33,7 +33,7 @@ class Config
             foreach($messageConfig->tasks as $task) {
                 $tasks[] = Task::new(
                     $task->address,
-                    $task->message
+                    $task->messageToDispatch
                 );
             }
         }

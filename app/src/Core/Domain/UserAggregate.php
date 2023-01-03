@@ -140,19 +140,19 @@ class UserAggregate
         }
     }
 
-    public function subscribeToCourses(ValueObjects\CourseRoleName $courseRoleName, ValueObjects\IdType $courseIdType, array $courseIds): void
+    public function subscribeUserToCourses(ValueObjects\CourseRoleName $courseRoleName, ValueObjects\IdType $courseIdType, array $courseIds): void
     {
         $message = Messages\UserSubscribedToCourses::new($this->userId,$courseRoleName, $courseIdType, $courseIds);
         $this->recordMessage($message);
     }
 
-    public function unsubscribeFromCourses(ValueObjects\IdType $courseIdType, array $courseIds): void
+    public function unsubscribeUserFromCourses(ValueObjects\IdType $courseIdType, array $courseIds): void
     {
         $message = Messages\UserUnsubscribedFromCourses::new($this->userId, $courseIdType, $courseIds);
         $this->recordMessage($message);
     }
 
-    public function subscribeToRoles(ValueObjects\IdType $roleIdType, array $roleIdIds): void
+    public function subscribeUserToRoles(ValueObjects\IdType $roleIdType, array $roleIdIds): void
     {
         $message = Messages\UserSubscribedToRoles::new($this->userId, $roleIdType, $roleIdIds);
         $this->recordMessage($message);

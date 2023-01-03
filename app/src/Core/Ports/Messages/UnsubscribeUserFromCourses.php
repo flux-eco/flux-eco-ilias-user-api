@@ -1,11 +1,10 @@
 <?php
 
 namespace FluxEco\IliasUserOrbital\Core\Ports\Messages;
-
 use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-class SubscribeToCourses implements IncomingMessage
-{
+
+class UnsubscribeUserFromCourses implements IncomingMessage {
 
     private function __construct(
         public ValueObjects\UserId $userId,
@@ -27,8 +26,7 @@ class SubscribeToCourses implements IncomingMessage
         );
     }
 
-    public static function fromJson(string $json)
-    {
+    public static function fromJson(string $json) {
         $obj = json_decode($json);
         return new self(
             ValueObjects\UserId::new(
@@ -43,7 +41,7 @@ class SubscribeToCourses implements IncomingMessage
 
     public function getName() : IncomingMessageName
     {
-        return IncomingMessageName::SUBSCRIBE_TO_COURSES;
+        return IncomingMessageName::SUBSCRIBE_USER_TO_COURSES;
     }
 
 }

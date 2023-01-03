@@ -1,16 +1,15 @@
 <?php
 
 namespace FluxEco\IliasUserOrbital\Core\Ports\Messages;
+
 use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
-
-class UnsubscribeFromCourses implements IncomingMessage {
-
+class SubscribeUserToCourseTree implements IncomingMessage
+{
     private function __construct(
-        public ValueObjects\UserId $userId,
-        public ValueObjects\CourseRoleName $courseRoleName,
-        public ValueObjects\IdType $courseIdType,
-        public array $courseIds
+        public readonly ValueObjects\UserId $userId,
+        public readonly ValueObjects\CourseRoleName $courseRoleName,
+        public readonly ValueObjects\RepositoryObjectId $categoryId
     ) {
 
     }
@@ -18,15 +17,15 @@ class UnsubscribeFromCourses implements IncomingMessage {
     public static function new(
         ValueObjects\UserId $userId,
         ValueObjects\CourseRoleName $courseRoleName,
-        ValueObjects\IdType $courseIdType,
-        array $courseIds
+        ValueObjects\RepositoryObjectId $categoryId
     ) : self {
         return new self(
             ...get_defined_vars()
         );
     }
 
-    public static function fromJson(string $json) {
+    public static function fromJson(string $json) : self
+    {
         $obj = json_decode($json);
         return new self(
             ValueObjects\UserId::new(
@@ -34,14 +33,12 @@ class UnsubscribeFromCourses implements IncomingMessage {
                 ValueObjects\IdType::from($obj->userId->idType),
             ),
             ValueObjects\CourseRoleName::from($obj->courseRoleName),
-            ValueObjects\IdType::from($obj->courseIdType),
-            $obj->courseIds
+            ValueObjects\RepositoryObjectId::new($obj->categoryId->id, ValueObjects\IdType::from($obj->categoryId->idType))
         );
     }
 
     public function getName() : IncomingMessageName
     {
-        return IncomingMessageName::SUBSCRIBE_TO_COURSES;
+        return IncomingMessageName::SUBSCRIBE_USER_TO_COURSE_TREE;
     }
-
 }

@@ -2,7 +2,8 @@
 
 namespace FluxEco\IliasUserOrbital\Core\Ports;
 
-use FluxEco\IliasUserOrbital\Core\Domain;
+use FluxEco\IliasUserOrbital\Core\Domain\UserAggregate;
+use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 
 class Service
 {
@@ -27,7 +28,7 @@ class Service
     public function createOrUpdateUser(Messages\CreateOrUpdateUser $message, callable $publish) : void
     {
         $iliasUser = $this->outbounds->userRepository->get($message->userId);
-        $aggregate = Domain\UserAggregate::new(
+        $aggregate = UserAggregate::new(
             $message->userId,
         );
         if ($iliasUser === null) {
@@ -43,53 +44,81 @@ class Service
         $this->dispatchMessages($recordedMessages, $publish);
     }
 
-    public function subscribeToCourses(Messages\SubscribeToCourses $message, callable $publish) : void
+    public function subscribeUserToCourses(Messages\SubscribeUserToCourses $message, callable $publish) : void
     {
         $iliasUser = $this->outbounds->userRepository->get($message->userId);
-        $aggregate = Domain\UserAggregate::new(
+        $aggregate = UserAggregate::new(
             $message->userId,
         );
         $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
-        $aggregate->subscribeToCourses($message->courseRoleName,  $message->courseIdType, $message->courseIds);
+        $aggregate->subscribeUserToCourses($message->courseRoleName, $message->courseIdType, $message->courseIds);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
         $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
     }
 
-    public function unsubscribeFromCourses(Messages\UnsubscribeFromCourses $message, callable $publish) : void
+    public function unsubscribeUserFromCourses(Messages\UnsubscribeUserFromCourses $message, callable $publish) : void
     {
         $iliasUser = $this->outbounds->userRepository->get($message->userId);
-        $aggregate = Domain\UserAggregate::new(
+        $aggregate = UserAggregate::new(
             $message->userId,
         );
         $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
-        $aggregate->unsubscribeFromCourses($message->courseIdType, $message->courseIds);
+        $aggregate->unsubscribeUserFromCourses($message->courseIdType, $message->courseIds);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
         $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
     }
 
-    public function subscribeToRoles(Messages\SubscribeToRoles $message, callable $publish) : void
+    public function subscribeUserToCourse(Messages\SubscribeUserToCourse $message, callable $publish) : void
     {
         $iliasUser = $this->outbounds->userRepository->get($message->userId);
-        $aggregate = Domain\UserAggregate::new(
+        $aggregate = UserAggregate::new(
             $message->userId,
         );
         $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
-        $aggregate->subscribeToRoles($message->roleIdType, $message->roleIds);
+        $aggregate->subscribeUserToCourses($message->courseRoleName, $message->courseId->idType,
+            [$message->courseId->id]);
+        $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
+        $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
+    }
+
+    public function subscribeUserToCourseTree(Messages\SubscribeUserToCourseTree $message, callable $publish) : void
+    {
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
+        $aggregate = UserAggregate::new(
+            $message->userId,
+        );
+        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+
+        $courseRefIds = $this->outbounds->courseRepository->getCourseRefIdsOfCategoryTree($message->categoryId);
+
+        $aggregate->subscribeUserToCourses($message->courseRoleName, ValueObjects\IdType::REF_ID, $courseRefIds);
+        $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
+        $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
+    }
+
+    public function subscribeUserToRoles(Messages\SubscribeUserToRoles $message, callable $publish) : void
+    {
+        $iliasUser = $this->outbounds->userRepository->get($message->userId);
+        $aggregate = UserAggregate::new(
+            $message->userId,
+        );
+        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
+        $aggregate->subscribeUserToRoles($message->roleIdType, $message->roleIds);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
         $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
     }
 
     private function createUser(
-        Domain\UserAggregate $aggregate,
-        Domain\ValueObjects\UserData $userData,
+        UserAggregate $aggregate,
+        ValueObjects\UserData $userData,
         array $additionalFields
     ) : void {
         $aggregate->create($userData, $additionalFields);
     }
 
     private function updateUser(
-        Domain\UserAggregate $aggregate,
-        Domain\ValueObjects\UserData $userData,
+        UserAggregate $aggregate,
+        ValueObjects\UserData $userData,
         array $additionalFields
     ) : void {
         $aggregate->changeUserData($userData);

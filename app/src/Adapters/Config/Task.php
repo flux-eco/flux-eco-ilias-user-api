@@ -6,14 +6,14 @@ class Task
 {
     private function __construct(
         public object $address,
-        public object $message
+        public object $messageToDispatch
     ) {
 
     }
 
     public static function new(
         object $address,
-        object $message
+        object $messageToDispatch
     ) : self {
         return new self(...get_defined_vars());
     }

@@ -25,7 +25,8 @@ class HttpApi
             Ports\Service::new(
                 Ports\Outbounds::new(
                     Adapters\Repositories\IliasUser\IliasUserRepository::new($iliasRestApiClient),
-                    Adapters\Dispatchers\HttpMessageDispatcher::new($config)
+                    Adapters\Dispatchers\HttpMessageDispatcher::new($config),
+                    Adapters\Repositories\IliasCourse\IliasCourseRepository::new($iliasRestApiClient)
                 )
             )
         );
@@ -39,24 +40,34 @@ class HttpApi
         $requestUri = $request->server['request_uri'];
 
         match (true) {
-            str_contains($requestUri,
+            str_ends_with($requestUri,
                 Ports\Messages\IncomingMessageName::CREATE_OR_UPDATE_USER->value) => $this->service->createOrUpdateUser(
                 Ports\Messages\CreateOrUpdateUser::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
-            str_contains($requestUri,
-                Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_COURSES->value) => $this->service->subscribeToCourses(
-                Ports\Messages\SubscribeToCourses::fromJson($request->rawContent()),
+            str_ends_with($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_USER_TO_COURSES->value) => $this->service->subscribeUserToCourses(
+                Ports\Messages\SubscribeUserToCourses::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
-            str_contains($requestUri,
-                Ports\Messages\IncomingMessageName::UNSUBSCRIBE_FROM_COURSES->value) => $this->service->unsubscribeFromCourses(
-                Ports\Messages\UnsubscribeFromCourses::fromJson($request->rawContent()),
+            str_ends_with($requestUri,
+                Ports\Messages\IncomingMessageName::UNSUBSCRIBE_USER_FROM_COURSES->value) => $this->service->unsubscribeUserFromCourses(
+                Ports\Messages\UnsubscribeUserFromCourses::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
-            str_contains($requestUri,
-                Ports\Messages\IncomingMessageName::SUBSCRIBE_TO_ROLES->value) => $this->service->subscribeToRoles(
-                Ports\Messages\SubscribeToRoles::fromJson($request->rawContent()),
+            str_ends_with($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_USER_TO_COURSE->value) => $this->service->subscribeUserToCourse(
+                Ports\Messages\SubscribeUserToCourse::fromJson($request->rawContent()),
+                $this->publish($response)
+            ),
+            str_ends_with($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_USER_TO_COURSE_TREE->value) => $this->service->subscribeUserToCourseTree(
+                Ports\Messages\SubscribeUserToCourseTree::fromJson($request->rawContent()),
+                $this->publish($response)
+            ),
+            str_ends_with($requestUri,
+                Ports\Messages\IncomingMessageName::SUBSCRIBE_USER_TO_ROLES->value) => $this->service->subscribeUserToRoles(
+                Ports\Messages\SubscribeUserToRoles::fromJson($request->rawContent()),
                 $this->publish($response)
             ),
             default => $this->publish($response)("address not valid: " . $requestUri)

@@ -6,7 +6,8 @@ class  Outbounds {
 
     private function __construct(
         public readonly User\UserRepository $userRepository,
-        public readonly User\UserMessageDispatcher $userMessageDispatcher
+        public readonly User\UserMessageDispatcher $userMessageDispatcher,
+        public readonly Course\CourseRepository $courseRepository
     )
     {
 
@@ -14,7 +15,8 @@ class  Outbounds {
 
     public static function new(
         User\UserRepository $userRepository,
-        User\UserMessageDispatcher $userMessageDispatcher
+        User\UserMessageDispatcher $userMessageDispatcher,
+        Course\CourseRepository $courseRepository
     ): self {
         return new self(...get_defined_vars());
     }
