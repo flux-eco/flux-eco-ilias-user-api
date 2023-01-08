@@ -122,7 +122,7 @@ class IliasUserRepository implements Ports\User\UserRepository
             }
 
             if ($message->roleIdType === Domain\ValueObjects\IdType::IMPORT_ID && $message->userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
-                $this->iliasRestApiClient->addUserRoleByImportIdByRoleId(
+                $this->iliasRestApiClient->addUserRoleByImportIdByRoleImportId(
                     $message->userId->id,
                     $id
                 );

@@ -4,16 +4,15 @@ require_once __DIR__ . '/libs/flux-ilias-rest-api-client/autoload.php';
 
 spl_autoload_register(function (string $class) {
     $namespace = "FluxEco\\IliasUserOrbital";
-    $baseDirectory = '/app/src';
-    loadClassFile($namespace, $class, $baseDirectory);
+    $baseDirectory = '/opt/flux-eco-ilias-user-orbital/app/src';
+    loadClassFileIliasUserOrbital($namespace, $class, $baseDirectory);
 });
 
 spl_autoload_register(function (string $class) {
-    $namespace = "Shuchkin";
-    $baseDirectory = '/app/libs/simple-xlsx/src';
-    loadClassFile($namespace, $class, $baseDirectory);
+    $namespace = "FluxEco\\DispatcherSynapse";
+    $baseDirectory = '/opt/flux-eco-dispatcher-synapse/app/src';
+    loadClassFileIliasUserOrbital($namespace, $class, $baseDirectory);
 });
-
 
 /**
  * @param string $namespace
@@ -21,7 +20,7 @@ spl_autoload_register(function (string $class) {
  * @param string $baseDirectory
  * @return void
  */
-function loadClassFile(string $namespace, string $class, string $baseDirectory): void
+function loadClassFileIliasUserOrbital(string $namespace, string $class, string $baseDirectory): void
 {
     $classNameParts = explode($namespace, $class);
     // not our responsibility

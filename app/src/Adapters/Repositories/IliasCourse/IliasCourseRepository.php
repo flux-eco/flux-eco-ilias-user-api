@@ -17,6 +17,8 @@ class IliasCourseRepository implements Ports\Course\CourseRepository
 
     public static function new(IliasRestApiClient $iliasRestApiClient) : self
     {
+        
+
         return new self(
             $iliasRestApiClient
         );

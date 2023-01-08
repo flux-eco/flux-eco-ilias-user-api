@@ -30,6 +30,7 @@ class SubscribeUserToCourses implements IncomingMessage
     public static function fromJson(string $json)
     {
         $obj = json_decode($json);
+
         return new self(
             ValueObjects\UserId::new(
                 $obj->userId->id,
