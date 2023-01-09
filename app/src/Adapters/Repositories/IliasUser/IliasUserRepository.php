@@ -107,6 +107,10 @@ class IliasUserRepository implements Ports\User\UserRepository
             if ($message->courseIdType === Domain\ValueObjects\IdType::IMPORT_ID && $message->userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
                 $this->iliasRestApiClient->removeCourseMemberByImportIdByUserImportId($id, $message->userId->id);
             }
+
+            if ($message->courseIdType === Domain\ValueObjects\IdType::OBJ_ID && $message->userId->idType === Domain\ValueObjects\IdType::OBJ_ID) {
+                $this->iliasRestApiClient->removeCourseMemberByIdByUserId($id, $message->userId->id);
+            }
         }
     }
 
@@ -141,9 +145,21 @@ class IliasUserRepository implements Ports\User\UserRepository
 
     public function get(Domain\ValueObjects\UserId $userId) : null|UserDto
     {
-        $iliasUser = $this->iliasRestApiClient->getUserByImportId(
-            $userId->id,
-        );
+        if($userId->idType === Domain\ValueObjects\IdType::IMPORT_ID) {
+
+            $iliasUser = $this->iliasRestApiClient->getUserByImportId(
+                $userId->id,
+            );
+        }
+        if($userId->idType === Domain\ValueObjects\IdType::OBJ_ID) {
+            $iliasUser = $this->iliasRestApiClient->getUserById(
+                (int)$userId->id,
+            );
+        }
+
+
+
+
         if ($iliasUser === null) {
             return null;
         }

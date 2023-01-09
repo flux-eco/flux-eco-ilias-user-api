@@ -58,11 +58,9 @@ class Service
 
     public function unsubscribeUserFromCourses(Messages\UnsubscribeUserFromCourses $message, callable $publish) : void
     {
-        $iliasUser = $this->outbounds->userRepository->get($message->userId);
         $aggregate = UserAggregate::new(
             $message->userId,
         );
-        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
         $aggregate->unsubscribeUserFromCourses($message->courseIdType, $message->courseIds);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
         $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
@@ -74,7 +72,6 @@ class Service
         $aggregate = UserAggregate::new(
             $message->userId,
         );
-        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
         $aggregate->subscribeUserToCourses($message->courseRoleName, $message->courseId->idType,
             [$message->courseId->id]);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
@@ -83,11 +80,9 @@ class Service
 
     public function subscribeUserToCourseTree(Messages\SubscribeUserToCourseTree $message, callable $publish) : void
     {
-        $iliasUser = $this->outbounds->userRepository->get($message->userId);
         $aggregate = UserAggregate::new(
             $message->userId,
         );
-        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
 
         $courseRefIds = $this->outbounds->courseRepository->getCourseRefIdsOfCategoryTree($message->categoryId);
 
@@ -98,11 +93,9 @@ class Service
 
     public function subscribeUserToRoles(Messages\SubscribeUserToRoles $message, callable $publish) : void
     {
-        $iliasUser = $this->outbounds->userRepository->get($message->userId);
         $aggregate = UserAggregate::new(
             $message->userId,
         );
-        $aggregate->reconstitue($iliasUser->userData, $iliasUser->additionalFields);
         $aggregate->subscribeUserToRoles($message->roleIdType, $message->roleIds);
         $this->outbounds->userRepository->handleMessages($aggregate->getAndResetRecordedMessages());
         $this->dispatchMessages($aggregate->getAndResetRecordedMessages(), $publish);
@@ -125,7 +118,7 @@ class Service
         $aggregate->changeAdditionalFields($additionalFields);
     }
 
-    private function dispatchMessages(array $recordedMessages, callable $publish)
+    private function dispatchMessages(array $recordedMessages, callable $publish) : void
     {
         $handledMessages = [];
         if (count($recordedMessages) > 0) {
@@ -134,7 +127,6 @@ class Service
                 $handledMessages[] = $message;
             }
         }
-        print_r($handledMessages);
         $publish(json_encode($handledMessages, JSON_PRETTY_PRINT));
     }
 }

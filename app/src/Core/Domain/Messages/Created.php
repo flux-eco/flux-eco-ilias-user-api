@@ -30,6 +30,6 @@ class Created implements OutgoingMessage
 
     public function getAddress() : string
     {
-        // TODO: Implement getAddress() method.
+        return MessageName::CREATED->value;
     }
 }

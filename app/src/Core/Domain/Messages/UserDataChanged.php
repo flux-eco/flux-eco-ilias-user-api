@@ -30,6 +30,6 @@ class UserDataChanged implements OutgoingMessage
 
     public function getAddress() : string
     {
-        // TODO: Implement getAddress() method.
+        return MessageName::USER_DATA_CHANGED->value;
     }
 }
