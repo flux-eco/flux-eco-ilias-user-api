@@ -1,4 +1,4 @@
-# flux-ilias-user-import-api
+# flux-ilias-user-api
 
 
 ## Provides
