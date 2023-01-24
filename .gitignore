@@ -4,7 +4,6 @@
 !README.md
 !app/
 app/*
-!app/public/
 !app/src/
 !app/bin/
 !app/autoload.php
