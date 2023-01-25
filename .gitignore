@@ -6,6 +6,7 @@
 app/*
 !app/src/
 !app/bin/
+!app/definitions/
 !app/autoload.php
 !app/docker_entrypoint.sh
 !app/server.php

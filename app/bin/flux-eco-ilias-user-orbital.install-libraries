@@ -9,3 +9,4 @@ installLibrary() {
 }
 
 installLibrary flux-ilias-rest-api-client https://github.com/fluxfw/flux-ilias-rest-api-client/releases/download/v2022-12-12-1/flux-ilias-rest-api-client-v2022-12-12-1-build.tar.gz
+installLibrary simple-xlsx https://github.com/shuchkin/simplexlsx/archive/refs/tags/1.0.18.tar.gz

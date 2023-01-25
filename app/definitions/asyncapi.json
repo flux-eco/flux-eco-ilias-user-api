@@ -1,0 +1,59 @@
+{
+  "asyncapi": "3.0.0",
+  "id": "https://github.com/flux-eco/flux-eco-ilias-user-orbital",
+  "info": {
+    "title": "flux-eco-ilias-user-orbital",
+    "version": "2023-01-25",
+    "contact": {
+      "name": "fluxlabs ag",
+      "email": "support@fluxlabs.ch",
+      "url": "https://fluxlabs.ch"
+    },
+    "license": {
+      "name": "GPL-3.0-or-later"
+    }
+  },
+  "servers": {
+    "nginx": {
+      "protocol": "http",
+      "url": "nginx"
+    },
+    "flux-eco-ilias-user-orbital": {
+      "protocol": "http",
+      "url": "flux-eco-ilias-user-orbital"
+    }
+  },
+  "channels": {
+    "flux-ilias-rest-api-proxy/flux-eco-ilias-user-orbital/importFromCsv": {
+      "address": "flux-eco-ilias-user-orbital/importFromCsv"
+    }
+  },
+  "operations": {
+    "flux-eco-ilias-user-orbital/importFromCsv": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/flux-eco-ilias-user-orbital/importFromCsv"
+      },
+      "bindings": {
+        "http": {
+          "type": "request",
+          "method": "GET",
+          "query": {
+            "$ref": "#/components/messages/importFromCsv/payload"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "messages": {
+      "importFromCsv": {
+        "payload": {
+          "import-id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
