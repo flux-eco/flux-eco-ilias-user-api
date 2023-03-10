@@ -5,7 +5,7 @@ namespace FluxEco\IliasUserOrbital\Adapters\Repositories\IliasCourse;
 use FluxEco\IliasUserOrbital\Core\Ports;
 use FluxEco\IliasUserOrbital\Core\Domain\ValueObjects;
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
-use FluxIliasRestApiClient\Libs\FluxIliasBaseApi\Adapter\Object\DefaultObjectType;
+use FluxIliasBaseApi\Adapter\Object\DefaultObjectType;
 
 class IliasCourseRepository implements Ports\Course\CourseRepository
 {

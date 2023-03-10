@@ -6,7 +6,7 @@ use FluxEco\IliasUserOrbital\Core\Ports;
 use FluxEco\IliasUserOrbital\Core\Domain;
 use FluxIliasRestApiClient\Adapter\Api\IliasRestApiClient;
 use FluxEco\IliasUserOrbital\Core\Ports\User\UserDto;
-use FluxIliasRestApiClient\Libs\FluxIliasBaseApi\Adapter\CourseMember\CourseMemberDiffDto;
+use FluxIliasBaseApi\Adapter\CourseMember\CourseMemberDiffDto;
 
 class IliasUserRepository implements Ports\User\UserRepository
 {
