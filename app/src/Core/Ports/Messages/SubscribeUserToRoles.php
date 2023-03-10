@@ -40,7 +40,7 @@ class SubscribeUserToRoles implements IncomingMessage
 
     public function getName() : IncomingMessageName
     {
-        return IncomingMessageName::SUBSCRIBE_USER_TO_COURSES;
+        return IncomingMessageName::SUBSCRIBE_USER_TO_ROLES;
     }
 
 }
